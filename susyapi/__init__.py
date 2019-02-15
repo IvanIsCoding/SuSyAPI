@@ -9,6 +9,10 @@ SUSY_PATH = "https://susy.ic.unicamp.br:9999"
 def concatenate_url(url,new_part):
 	"""Given a URL a new part that is trying to be appended to it, generates the new URL accordingly"""
 
+	# Checking arguments type
+	if (type(url) is not str) or (type(new_part) is not str):
+		raise TypeError("Erro: os argumentos devem ser strings.")
+
 	if url[-1] == "/":
 		if new_part[0] == "/":
 			return url + new_part[1:] # we avoid having two forward slashes
@@ -19,8 +23,20 @@ def concatenate_url(url,new_part):
 	else:
 		return url + "/" + new_part
 
+def format_user_id(user_id):
+	# TODO: Docstring, remove ra prefix
+
+	if type(user_id) is not str:
+		raise TypeError("Erro: o argumento devem ser uma string.")
+
+	return user_id
+
 def get_html(url, error_message = "Erro: "):
 	"""Fetches the HTML source of the given URL using the requests lib."""
+
+	# Checking arguments type
+	if (type(url) is not str) or (type(error_message) is not str):
+		raise TypeError("Erro: os argumentos devem ser strings.")
 
 	# Obtaining the html of the page
 	try:
@@ -44,6 +60,10 @@ def get_html(url, error_message = "Erro: "):
 def get_sections(url = SUSY_PATH):
 	"""Returns a dictionary of all active sections listed on SuSy's main page.
 	The key is the code of the section and the value is the section's SuSy address."""
+
+	# Checking argument type
+	if type(url) is not str:
+		raise TypeError("Erro: o argumento devem ser uma string.")
 
 	error_message = "Não foi possível obter todas as turmas: "
 
@@ -73,6 +93,10 @@ def get_due_date(html_source):
 	"""Given the HTML source of a SuSy assignment page, uses regex returns the due date of the assignment.
 	Note: Dates are formated in dd/mm/YYYY and hours are formated in HH:MM:SS."""
 	
+	# Checking argument type
+	if type(html_source) is not str:
+		raise TypeError("Erro: o argumento devem ser uma string.")
+
 	list_days = re.findall(r'\d+/\d+/\d+',html_source) # finds the pattern dd/mm/YYYY
 	list_hours = re.findall(r'\d+:\d+:\d+',html_source) # finds the pattern HH:MM:SS
 
@@ -91,6 +115,10 @@ def get_due_date(html_source):
 def get_groups(html_source, url):
 	"""Given the HTML source of a SuSy assignment page and the URL of the section, returns the groups of the assignment."""
 	
+	# Checking arguments type
+	if (type(html_source) is not str) or (type(url) is not str):
+		raise TypeError("Erro: os argumentos devem ser strings.")
+
 	soup = BeautifulSoup(html_source,"html.parser")
 	page_groups = [] # list that contains the URLs of the groups
 	anchor_tags = soup.findAll(lambda tag: tag.name == "a")
@@ -106,15 +134,18 @@ def get_groups(html_source, url):
 	return page_groups
 
 def get_assignments(url):
-	"""Returns a dictionary of all assignments listed on the section's page.
+	"""Given a URL, returns a dictionary of all assignments listed on the section's page.
 	The key is the name of the assignments and the value is a dictionary that contains
 	the assignments SuSy address, the date it is due and its groups."""
+
+	# Checking argument type
+	if type(url) is not str:
+		raise TypeError("Erro: o argumento devem ser uma string.")
 
 	error_message = "Não foi possível obter as tarefas: "
 
 	# Obtaining the html of the page
 	try:
-		# TODO: solve the SSL problem
 		html_source = get_html(url,error_message)
 	except Exception as e:
 		raise e
@@ -133,7 +164,7 @@ def get_assignments(url):
 		# Getting the code and url
 		row_elements = row.findAll(lambda tag: tag.name == "td")
 		assignment_reference = row_elements[0].find(lambda tag: tag.name == "a") # link to the assignment page
-		assignment_code = assignment_reference.contents[0]
+		assignment_code = str(assignment_reference.contents[0])
 		assignment_dictionary["url"] = concatenate_url(url,assignment_code)
 
 		# Getting the name, the due date and the groups
@@ -146,3 +177,56 @@ def get_assignments(url):
 		assignments[assignment_code] = assignment_dictionary
 
 	return assignments
+
+def get_users(url):
+	"""Given a URL of a group or a list of URLs, returns a list all the users that have completed the assignment in that group"""
+
+	# Checking argument type
+	if type(url) not in (list,str):
+		raise TypeError("Erro: o argumento devem ser uma lista ou string.")
+
+	# Handling list case
+	if type(url) is list:
+
+		completed_users = [] # list of users that have done the assignment
+
+		for url_link in url:
+			# We get the users for each link and append it to the list
+			completed_users.extend(get_users(url_link))
+
+		return completed_users
+
+	error_message = "Não foi possível obter os usuários: "
+
+	# Obtaining HTML page
+	try:
+		html_source = get_html(url)
+	except Exception as e:
+		raise e
+
+	# Finding the table with the users
+	soup = BeautifulSoup(html_source, "html.parser")
+	html_table = soup.find(lambda tag: tag.name == "table")
+	
+	# no match, return empty list
+	if html_table is None:
+		return []
+
+	table_rows = html_table.findAll(lambda tag: tag.name == "tr")
+
+	# Geting user id from the table
+	completed_users = [] # list of users that have done the assignment
+	for index, row in enumerate(table_rows):
+		
+		if index == 0:
+			continue # we skip the table head
+
+		row_elements = row.findAll(lambda tag : tag.name == "td")
+		user_id = str(row_elements[0].contents[0])
+		correct_submissions = int(row_elements[2].contents[0])
+
+		if correct_submissions > 0:
+			# The user has at least one correct submission, add the id to the list
+			completed_users.append(format_user_id(user_id))
+
+	return completed_users
