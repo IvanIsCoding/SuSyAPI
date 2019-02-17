@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 SUSY_PATH = "https://susy.ic.unicamp.br:9999"
 
 
-def concatenate_url(url, new_part):
+def _concatenate_url(url, new_part):
     """Given a URL a new part that is trying to be appended to it, generates the new URL accordingly."""
 
     # Checking arguments type
@@ -25,16 +25,19 @@ def concatenate_url(url, new_part):
         return url + "/" + new_part
 
 
-def format_user_id(user_id):
+def _format_user_id(user_id):
     # TODO: Docstring, remove ra prefix
 
     if type(user_id) is not str:
         raise TypeError("Erro: o argumento devem ser uma string.")
 
-    return user_id
+    if len(user_id) >= 3 and user_id[:2] == "ra":
+        return user_id[2:]  # the prefix ra should be removed
+    else:
+        return user_id
 
 
-def get_html(url, error_message="Erro: "):
+def _get_html(url, error_message="Erro: "):
     """Fetches the HTML source of the given URL using the requests lib."""
 
     # Checking arguments type
@@ -73,7 +76,7 @@ def get_sections(url=SUSY_PATH):
 
     # Obtaining the html of the page
     try:
-        html_source = get_html(url, error_message)
+        html_source = _get_html(url, error_message)
     except Exception as e:
         raise e
 
@@ -88,13 +91,13 @@ def get_sections(url=SUSY_PATH):
         row_elements = row.findAll(lambda tag: tag.name == "td")
         section_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the section page
         section_code = section_reference.contents[0]
-        section_url = concatenate_url(url, section_reference["href"])
+        section_url = _concatenate_url(url, section_reference["href"])
         sections[section_code] = section_url
 
     return sections
 
 
-def get_due_date(html_source):
+def _get_due_date(html_source):
     """Given the HTML source of a SuSy assignment page, uses regex returns the due date of the assignment.
     Note: Dates are formated in dd/mm/YYYY and hours are formated in HH:MM:SS."""
     
@@ -118,7 +121,7 @@ def get_due_date(html_source):
         raise IndexError("Erro: a data de entrega não foi encontrada.")
 
 
-def get_groups(html_source, url):
+def _get_groups(html_source, url):
     """Given the HTML source of a SuSy assignment page and the URL of the section, returns the groups of the assignment."""
     
     # Checking arguments type
@@ -133,7 +136,7 @@ def get_groups(html_source, url):
         try:
             tag_reference = anchor["href"]
             if "relato" in tag_reference:
-                page_groups.append(concatenate_url(url, tag_reference))  # we found a group
+                page_groups.append(_concatenate_url(url, tag_reference))  # we found a group
         except KeyError:
             continue  # the anchor tag does not have an href element. very unusual
 
@@ -153,7 +156,7 @@ def get_assignments(url):
 
     # Obtaining the html of the page
     try:
-        html_source = get_html(url, error_message)
+        html_source = _get_html(url, error_message)
     except Exception as e:
         raise e
 
@@ -172,14 +175,14 @@ def get_assignments(url):
         row_elements = row.findAll(lambda tag: tag.name == "td")
         assignment_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the assignment page
         assignment_code = str(assignment_reference.contents[0])
-        assignment_dictionary["url"] = concatenate_url(url, assignment_code)
+        assignment_dictionary["url"] = _concatenate_url(url, assignment_code)
 
         # Getting the name, the due date and the groups
         assignment_dictionary["name"] = row_elements[1].contents[0].replace(u'\xa0', " ")  # we replace unicode spaces
-        assignment_html = get_html(assignment_dictionary["url"], "Erro ao processar " + assignment_code + ": ")
+        assignment_html = _get_html(assignment_dictionary["url"], "Erro ao processar " + assignment_code + ": ")
         assignment_html = BeautifulSoup(assignment_html, "html.parser").prettify()
-        assignment_dictionary["due_date"] = get_due_date(assignment_html)
-        assignment_dictionary["groups"] = get_groups(assignment_html, url)
+        assignment_dictionary["due_date"] = _get_due_date(assignment_html)
+        assignment_dictionary["groups"] = _get_groups(assignment_html, url)
 
         assignments[assignment_code] = assignment_dictionary
 
@@ -208,7 +211,7 @@ def get_users(url):
 
     # Obtaining HTML page
     try:
-        html_source = get_html(url)
+        html_source = _get_html(url)
     except Exception as e:
         raise e
 
@@ -235,6 +238,6 @@ def get_users(url):
 
         if correct_submissions > 0:
             # The user has at least one correct submission, add the id to the list
-            completed_users.append(format_user_id(user_id))
+            completed_users.append(_format_user_id(user_id))
 
     return completed_users
