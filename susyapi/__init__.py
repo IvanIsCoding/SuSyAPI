@@ -3,30 +3,13 @@ import datetime
 import re
 import urllib3
 from bs4 import BeautifulSoup
+import urllib.parse
 
 SUSY_PATH = "https://susy.ic.unicamp.br:9999"
 
 
-def _concatenate_url(url, new_part):
-    """Given a URL a new part that is trying to be appended to it, generates the new URL accordingly."""
-
-    # Checking arguments type
-    if (type(url) is not str) or (type(new_part) is not str):
-        raise TypeError("Erro: os argumentos devem ser strings.")
-
-    if url[-1] == "/":
-        if new_part[0] == "/":
-            return url + new_part[1:]  # we avoid having two forward slashes
-        else:
-            return url + new_part
-    elif new_part[0] == "/":
-        return url + new_part
-    else:
-        return url + "/" + new_part
-
-
 def _format_user_id(user_id):
-    # TODO: Docstring, remove ra prefix
+    """Given an user id, removes the ra prefix from it."""
 
     if type(user_id) is not str:
         raise TypeError("Erro: o argumento devem ser uma string.")
@@ -90,8 +73,8 @@ def get_sections(url=SUSY_PATH):
     for row in table_rows:
         row_elements = row.findAll(lambda tag: tag.name == "td")
         section_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the section page
-        section_code = section_reference.contents[0]
-        section_url = _concatenate_url(url, section_reference["href"])
+        section_code = str(section_reference.contents[0])
+        section_url = urllib.parse.urljoin(url, section_reference["href"])
         sections[section_code] = section_url
 
     return sections
@@ -136,7 +119,7 @@ def _get_groups(html_source, url):
         try:
             tag_reference = anchor["href"]
             if "relato" in tag_reference:
-                page_groups.append(_concatenate_url(url, tag_reference))  # we found a group
+                page_groups.append(urllib.parse.urljoin(url, tag_reference))  # we found a group
         except KeyError:
             continue  # the anchor tag does not have an href element. very unusual
 
@@ -175,14 +158,14 @@ def get_assignments(url):
         row_elements = row.findAll(lambda tag: tag.name == "td")
         assignment_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the assignment page
         assignment_code = str(assignment_reference.contents[0])
-        assignment_dictionary["url"] = _concatenate_url(url, assignment_code)
+        assignment_dictionary["url"] = urllib.parse.urljoin(url, assignment_reference["href"])
 
         # Getting the name, the due date and the groups
         assignment_dictionary["name"] = row_elements[1].contents[0].replace(u'\xa0', " ")  # we replace unicode spaces
         assignment_html = _get_html(assignment_dictionary["url"], "Erro ao processar " + assignment_code + ": ")
         assignment_html = BeautifulSoup(assignment_html, "html.parser").prettify()
         assignment_dictionary["due_date"] = _get_due_date(assignment_html)
-        assignment_dictionary["groups"] = _get_groups(assignment_html, url)
+        assignment_dictionary["groups"] = _get_groups(assignment_html,assignment_dictionary["url"])
 
         assignments[assignment_code] = assignment_dictionary
 
