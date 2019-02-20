@@ -8,6 +8,7 @@ try:
     import susyapi
 except ModuleNotFoundError:
     import sys
+
     sys.path.append("..")
     import susyapi
 
@@ -16,14 +17,20 @@ def load_example_html(filename):
     """Loads the data from the HTML examples in the examples folder."""
     return ""
 
+
 # Source of some SuSy pages
 HTML_PAGES = {
-    "SECTIONS": "", "ASSIGNMENT1": "", "EMPTY_ASSIGNMENT": "",
-    "TASK1": "", "TASK2:", "GROUP": "", "EMPTY_GROUP": ""
+    "SECTIONS": "",
+    "ASSIGNMENT1": "",
+    "EMPTY_ASSIGNMENT": "",
+    "TASK1": "",
+    "TASK2": "",
+    "GROUP": "",
+    "EMPTY_GROUP": "",
 }
 
-class TestArguments(unittest.TestCase):
 
+class TestArguments(unittest.TestCase):
     def test_format_user_id(self):
         self.assertEqual(susyapi._format_user_id("ra123456"), "123456")
         self.assertEqual(susyapi._format_user_id("123456"), "123456")
@@ -37,7 +44,7 @@ class TestArguments(unittest.TestCase):
         A Mock object is used to replace the answer to the query and return
         the HTML of the main page.
         """
-        
+
         mocked_response = Mock()
         mocked_response.text = HTML_PAGES["SECTIONS"]
 
@@ -51,15 +58,15 @@ class TestArguments(unittest.TestCase):
     def test_get_groups(self):
         html_source = load_example_html(HTML_PAGES["TASK1"])
         url = ""
-        #self.assertEqual(susyapi._get_groups(html_source, url), )
+        # self.assertEqual(susyapi._get_groups(html_source, url), )
 
     def test_get_due_date(self):
 
         html_source = load_example_html(HTML_PAGES["TASK1"])
-        #self.assertEqual(susyapi._get_due_date(html_source), )
+        # self.assertEqual(susyapi._get_due_date(html_source), )
 
         html_source = load_example_html(HTML_PAGES["TASK2"])
-        #self.assertEqual(susyapi._get_due_date(html_source), )
+        # self.assertEqual(susyapi._get_due_date(html_source), )
 
     @patch("susyapi._get_html")
     def test_get_assignments(self, mocked_get):
@@ -67,11 +74,11 @@ class TestArguments(unittest.TestCase):
 
     @patch("susyapi._get_html")
     def test_get_users(self, mocked_get):
-        
+
         mock_url = "url"
 
         mocked_get.return_value = load_example_html(HTML_PAGES["GROUP"])
-        #self.assertEqual(susyapi.get_users(), ["visita"])
+        # self.assertEqual(susyapi.get_users(), ["visita"])
 
         mocked_get.return_value = load_example_html(HTML_PAGES["EMPTY_GROUP"])
         self.assertEqual(susyapi.get_users(mock_url), [])
