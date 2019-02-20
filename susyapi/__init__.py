@@ -75,6 +75,11 @@ def get_sections(url=SUSY_PATH):
     # Finding the table with the sections
     soup = BeautifulSoup(html_source, "html.parser")
     html_table = soup.find(lambda tag: tag.name == "table")
+
+    # no match, return empty dict
+    if html_table is None:
+        return {}
+
     table_rows = html_table.findAll(lambda tag: tag.name == "tr")
 
     # Iterates over all sections to build the final dictionaty
@@ -161,6 +166,11 @@ def get_assignments(url):
     # Finding the table with the assignments
     soup = BeautifulSoup(html_source, "html.parser")
     html_table = soup.find(lambda tag: tag.name == "table")
+
+    # no match, return empty dict
+    if html_table is None:
+        return {}
+
     table_rows = html_table.findAll(lambda tag: tag.name == "tr")
 
     # Iterates over all assignments to build the final dictionaty

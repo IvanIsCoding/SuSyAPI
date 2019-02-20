@@ -15,18 +15,27 @@ except ModuleNotFoundError:
 
 def load_example_html(filename):
     """Loads the data from the HTML examples in the examples folder."""
-    return ""
+    file_dir = os.path.dirname(__file__)
+    file_path = os.path.join(file_dir, filename)
+    try:
+        html_file = open(file_path, "r")
+        html_source = html_file.read()
+        html_file.close()
+        return html_source
+    except FileNotFoundError:
+        return ""  # the file does not exist, return empty code
 
 
 # Source of some SuSy pages
 HTML_PAGES = {
-    "SECTIONS": "",
-    "ASSIGNMENT1": "",
-    "EMPTY_ASSIGNMENT": "",
-    "TASK1": "",
-    "TASK2": "",
-    "GROUP": "",
-    "EMPTY_GROUP": "",
+    "SECTIONS": "examples/maintenance.html",
+    "ASSIGNMENT1": "examples/maintenance.html",
+    "EMPTY_ASSIGNMENT": "examples/maintenance.html",
+    "TASK1": "examples/maintenance.html",
+    "TASK2": "examples/maintenance.html",
+    "GROUP": "examples/maintenance.html",
+    "EMPTY_GROUP": "examples/maintenance.html",
+    "MAINTENANCE": "examples/maintenance.html",
 }
 
 
@@ -53,32 +62,35 @@ class TestArguments(unittest.TestCase):
 
     @patch("susyapi._get_html")
     def test_get_sections(self, mocked_get):
-        pass
+        mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
+        self.assertEqual(susyapi.get_sections(), {})
 
     def test_get_groups(self):
-        html_source = load_example_html(HTML_PAGES["TASK1"])
-        url = ""
+        pass
+        # html_source = load_example_html(HTML_PAGES["TASK1"])
+        # url = ""
         # self.assertEqual(susyapi._get_groups(html_source, url), )
 
     def test_get_due_date(self):
-
-        html_source = load_example_html(HTML_PAGES["TASK1"])
+        pass
+        # html_source = load_example_html(HTML_PAGES["TASK1"])
         # self.assertEqual(susyapi._get_due_date(html_source), )
 
-        html_source = load_example_html(HTML_PAGES["TASK2"])
+        # html_source = load_example_html(HTML_PAGES["TASK2"])
         # self.assertEqual(susyapi._get_due_date(html_source), )
 
     @patch("susyapi._get_html")
     def test_get_assignments(self, mocked_get):
-        pass
+        mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
+        self.assertEqual(susyapi.get_sections(), {})
 
     @patch("susyapi._get_html")
     def test_get_users(self, mocked_get):
 
-        mock_url = "url"
+        mock_url = "https://susy.ic.unicamp.br:9999/mc999/01/relatoA.html"
 
-        mocked_get.return_value = load_example_html(HTML_PAGES["GROUP"])
-        # self.assertEqual(susyapi.get_users(), ["visita"])
+        mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
+        self.assertEqual(susyapi.get_users(mock_url), [])
 
         mocked_get.return_value = load_example_html(HTML_PAGES["EMPTY_GROUP"])
         self.assertEqual(susyapi.get_users(mock_url), [])
