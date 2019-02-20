@@ -28,7 +28,7 @@ def load_example_html(filename):
 
 # Source of some SuSy pages
 HTML_PAGES = {
-    "SECTIONS": "examples/maintenance.html",
+    "SECTIONS": "examples/mainpage.html",
     "ASSIGNMENT1": "examples/maintenance.html",
     "EMPTY_ASSIGNMENT": "examples/maintenance.html",
     "TASK1": "examples/maintenance.html",
@@ -62,8 +62,37 @@ class TestArguments(unittest.TestCase):
 
     @patch("susyapi._get_html")
     def test_get_sections(self, mocked_get):
+
         mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
         self.assertEqual(susyapi.get_sections(), {})
+
+        mocked_get.return_value = load_example_html(HTML_PAGES["SECTIONS"])
+        self.assertEqual(
+            susyapi.get_sections(),
+            {
+                "mc102ab": "https://susy.ic.unicamp.br:9999/mc102ab",
+                "mc102cd": "https://susy.ic.unicamp.br:9999/mc102cd",
+                "mc102ef": "https://susy.ic.unicamp.br:9999/mc102ef",
+                "mc102ij": "https://susy.ic.unicamp.br:9999/mc102ij",
+                "mc102kl": "https://susy.ic.unicamp.br:9999/mc102kl",
+                "mc102mn": "https://susy.ic.unicamp.br:9999/mc102mn",
+                "mc102op": "https://susy.ic.unicamp.br:9999/mc102op",
+                "mc102uv": "https://susy.ic.unicamp.br:9999/mc102uv",
+                "mc102xy": "https://susy.ic.unicamp.br:9999/mc102xy",
+                "mc102z": "https://susy.ic.unicamp.br:9999/mc102z",
+                "mc202ef": "https://susy.ic.unicamp.br:9999/mc202ef",
+                "mc202gh": "https://susy.ic.unicamp.br:9999/mc202gh",
+                "mc346a": "https://susy.ic.unicamp.br:9999/mc346a",
+                "mc404ef": "https://susy.ic.unicamp.br:9999/mc404ef",
+                "mc458ab": "https://susy.ic.unicamp.br:9999/mc458ab",
+                "mc458cd": "https://susy.ic.unicamp.br:9999/mc458cd",
+                "mc558ab": "https://susy.ic.unicamp.br:9999/mc558ab",
+                "mc658a": "https://susy.ic.unicamp.br:9999/mc658a",
+                "mc999": "https://susy.ic.unicamp.br:9999/mc999",
+                "st464ab": "https://susy.ic.unicamp.br:9999/st464ab",
+                "tt214ab": "https://susy.ic.unicamp.br:9999/tt214ab",
+            },
+        )
 
     def test_get_groups(self):
         pass
