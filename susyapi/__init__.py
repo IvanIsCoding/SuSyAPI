@@ -34,13 +34,22 @@ def _get_html(url, error_message="Erro: "):
         response = requests.get(url, timeout=5, verify=False)
         response.raise_for_status()
     except requests.exceptions.Timeout:
-        raise requests.exceptions.Timeout(error_message + "O servidor do IC demorou demais para responder.")
+        raise requests.exceptions.Timeout(
+            error_message + "O servidor do IC demorou demais para responder."
+        )
     except requests.exceptions.SSLError:
-        raise requests.exceptions.SSLError(error_message + "Não foi possível conectar seguramente com o servidor do IC.")
+        raise requests.exceptions.SSLError(
+            error_message
+            + "Não foi possível conectar seguramente com o servidor do IC."
+        )
     except requests.exceptions.ConnectionError:
-        raise requests.exceptions.ConnectionError(error_message + "O servidor do IC retornou um erro de conexão.")
+        raise requests.exceptions.ConnectionError(
+            error_message + "O servidor do IC retornou um erro de conexão."
+        )
     except requests.exceptions.HTTPError:
-        raise requests.exceptions.HTTPError(error_message + "O servidor do IC retornou um erro HTTP.")
+        raise requests.exceptions.HTTPError(
+            error_message + "O servidor do IC retornou um erro HTTP."
+        )
     except Exception as e:
         raise e(error_message + "Erro desconhecido.")
 
@@ -72,7 +81,9 @@ def get_sections(url=SUSY_PATH):
     sections = {}
     for row in table_rows:
         row_elements = row.findAll(lambda tag: tag.name == "td")
-        section_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the section page
+        section_reference = row_elements[0].find(
+            lambda tag: tag.name == "a"
+        )  # link to the section page
         section_code = str(section_reference.contents[0])
         section_url = urllib.parse.urljoin(url, section_reference["href"])
         sections[section_code] = section_url
@@ -83,13 +94,13 @@ def get_sections(url=SUSY_PATH):
 def _get_due_date(html_source):
     """Given the HTML source of a SuSy assignment page, uses regex returns the due date of the assignment.
     Note: Dates are formated in dd/mm/YYYY and hours are formated in HH:MM:SS."""
-    
+
     # Checking argument type
     if type(html_source) is not str:
         raise TypeError("Erro: o argumento devem ser uma string.")
 
-    list_days = re.findall(r'\d+/\d+/\d+', html_source)  # finds the pattern dd/mm/YYYY
-    list_hours = re.findall(r'\d+:\d+:\d+', html_source)  # finds the pattern HH:MM:SS
+    list_days = re.findall(r"\d+/\d+/\d+", html_source)  # finds the pattern dd/mm/YYYY
+    list_hours = re.findall(r"\d+:\d+:\d+", html_source)  # finds the pattern HH:MM:SS
 
     try:
 
@@ -98,7 +109,9 @@ def _get_due_date(html_source):
             list_hours[1] = "23:59:59"
 
         due_date = list_days[1] + " " + list_hours[1]  # concatenating dates
-        return datetime.datetime.strptime(due_date, "%d/%m/%Y %H:%M:%S")  # converting and returning date
+        return datetime.datetime.strptime(
+            due_date, "%d/%m/%Y %H:%M:%S"
+        )  # converting and returning date
 
     except IndexError:
         raise IndexError("Erro: a data de entrega não foi encontrada.")
@@ -106,7 +119,7 @@ def _get_due_date(html_source):
 
 def _get_groups(html_source, url):
     """Given the HTML source of a SuSy assignment page and the URL of the section, returns the groups of the assignment."""
-    
+
     # Checking arguments type
     if (type(html_source) is not str) or (type(url) is not str):
         raise TypeError("Erro: os argumentos devem ser strings.")
@@ -119,7 +132,9 @@ def _get_groups(html_source, url):
         try:
             tag_reference = anchor["href"]
             if "relato" in tag_reference:
-                page_groups.append(urllib.parse.urljoin(url, tag_reference))  # we found a group
+                page_groups.append(
+                    urllib.parse.urljoin(url, tag_reference)
+                )  # we found a group
         except KeyError:
             continue  # the anchor tag does not have an href element. very unusual
 
@@ -153,19 +168,29 @@ def get_assignments(url):
     for row in table_rows:
 
         assignment_dictionary = {}
-        
+
         # Getting the code and url
         row_elements = row.findAll(lambda tag: tag.name == "td")
-        assignment_reference = row_elements[0].find(lambda tag: tag.name == "a")  # link to the assignment page
+        assignment_reference = row_elements[0].find(
+            lambda tag: tag.name == "a"
+        )  # link to the assignment page
         assignment_code = str(assignment_reference.contents[0])
-        assignment_dictionary["url"] = urllib.parse.urljoin(url, assignment_reference["href"])
+        assignment_dictionary["url"] = urllib.parse.urljoin(
+            url, assignment_reference["href"]
+        )
 
         # Getting the name, the due date and the groups
-        assignment_dictionary["name"] = row_elements[1].contents[0].replace(u'\xa0', " ")  # we replace unicode spaces
-        assignment_html = _get_html(assignment_dictionary["url"], "Erro ao processar " + assignment_code + ": ")
+        assignment_dictionary["name"] = (
+            row_elements[1].contents[0].replace(u"\xa0", " ")
+        )  # we replace unicode spaces
+        assignment_html = _get_html(
+            assignment_dictionary["url"], "Erro ao processar " + assignment_code + ": "
+        )
         assignment_html = BeautifulSoup(assignment_html, "html.parser").prettify()
         assignment_dictionary["due_date"] = _get_due_date(assignment_html)
-        assignment_dictionary["groups"] = _get_groups(assignment_html,assignment_dictionary["url"])
+        assignment_dictionary["groups"] = _get_groups(
+            assignment_html, assignment_dictionary["url"]
+        )
 
         assignments[assignment_code] = assignment_dictionary
 
@@ -201,7 +226,7 @@ def get_users(url):
     # Finding the table with the users
     soup = BeautifulSoup(html_source, "html.parser")
     html_table = soup.find(lambda tag: tag.name == "table")
-    
+
     # no match, return empty list
     if html_table is None:
         return []
