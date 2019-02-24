@@ -25,6 +25,7 @@ setup(
     version="0.1",
     description="An API for getting information from University of Campinas' Submission System",
     long_description=long_description,
+    long_description_content_type='text/markdown',  # This is important!
     # The project's main homepage.
     url="https://github.com/IvanIsCoding/SuSyAPI",
     # Author details
