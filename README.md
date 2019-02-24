@@ -1,4 +1,4 @@
-# SuSy API [![](https://img.shields.io/badge/python-3.5+-blue.svg)](https://www.python.org/download/releases/3.5.0/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+# SuSy API [![Python 3.5+](https://img.shields.io/badge/python-3.5+-blue.svg)](https://www.python.org/download/releases/3.5.0/) [![PyPI release](https://img.shields.io/pypi/v/susyapi.svg)](https://pypi.org/project/susyapi/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 An API to get data from [University of Campinas' Submission System (SuSy)](https://www.ic.unicamp.br/~susy/).
 
