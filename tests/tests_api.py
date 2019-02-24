@@ -9,7 +9,7 @@ try:
 except ModuleNotFoundError:
     import sys
 
-    sys.path.append("..")
+    sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
     import susyapi
 
 
@@ -29,12 +29,13 @@ def load_example_html(filename):
 # Source of some SuSy pages
 HTML_PAGES = {
     "SECTIONS": "examples/mainpage.html",
-    "ASSIGNMENT1": "examples/maintenance.html",
-    "EMPTY_ASSIGNMENT": "examples/maintenance.html",
-    "TASK1": "examples/maintenance.html",
-    "TASK2": "examples/maintenance.html",
-    "GROUP": "examples/maintenance.html",
-    "EMPTY_GROUP": "examples/maintenance.html",
+    "SECTION1": "examples/section1.html",
+    "EMPTY_SECTION": "examples/emptysection.html",
+    "TASK1": "examples/task1.html",
+    "TASK2": "examples/task2.html",
+    "GROUP1": "examples/group1.html",
+    "GROUP2": "examples/group2.html",
+    "EMPTY_GROUP": "examples/emptygroup.html",
     "MAINTENANCE": "examples/maintenance.html",
 }
 
@@ -95,23 +96,64 @@ class TestArguments(unittest.TestCase):
         )
 
     def test_get_groups(self):
-        pass
-        # html_source = load_example_html(HTML_PAGES["TASK1"])
-        # url = ""
-        # self.assertEqual(susyapi._get_groups(html_source, url), )
+
+        mock_url = "https://susy.ic.unicamp.br:9999/mc999/01"
+
+        html_source = load_example_html(HTML_PAGES["TASK1"])
+        self.assertEqual(
+            susyapi._get_groups(html_source, mock_url),
+            [
+                "https://susy.ic.unicamp.br:9999/mc999/01/relatoA.html",
+                "https://susy.ic.unicamp.br:9999/mc999/01/relatoB.html",
+            ],
+        )
+
+        html_source = load_example_html(HTML_PAGES["TASK2"])
+        self.assertEqual(susyapi._get_groups(html_source, mock_url), [])
 
     def test_get_due_date(self):
-        pass
-        # html_source = load_example_html(HTML_PAGES["TASK1"])
-        # self.assertEqual(susyapi._get_due_date(html_source), )
 
-        # html_source = load_example_html(HTML_PAGES["TASK2"])
-        # self.assertEqual(susyapi._get_due_date(html_source), )
+        html_source = load_example_html(HTML_PAGES["TASK1"])
+        self.assertEqual(
+            susyapi._get_due_date(html_source),
+            datetime.datetime(2020, 12, 28, 23, 59, 59),
+        )
+
+        html_source = load_example_html(HTML_PAGES["TASK2"])
+        self.assertEqual(
+            susyapi._get_due_date(html_source),
+            datetime.datetime(2019, 6, 30, 23, 59, 59),
+        )
 
     @patch("susyapi._get_html")
     def test_get_assignments(self, mocked_get):
+
+        mock_url = "https://susy.ic.unicamp.br:9999/mc999"
+
         mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
-        self.assertEqual(susyapi.get_sections(), {})
+        self.assertEqual(susyapi.get_assignments(mock_url), {})
+
+        mocked_get.return_value = load_example_html(HTML_PAGES["EMPTY_SECTION"])
+        self.assertEqual(susyapi.get_assignments(mock_url), {})
+
+        mock_url = "https://susy.ic.unicamp.br:9999/mo901a"
+        with patch("susyapi._get_due_date") as mocked_date, patch(
+            "susyapi._get_groups"
+        ) as mocked_group:
+            mocked_get.return_value = load_example_html(HTML_PAGES["SECTION1"])
+            mocked_date.return_value = datetime.datetime(2019, 6, 30, 23, 59, 59)
+            mocked_group.return_value = []
+            self.assertEqual(
+                susyapi.get_assignments(mock_url),
+                {
+                    "2019-00-00": {
+                        "url": "https://susy.ic.unicamp.br:9999/mo901a/2019-00-00",
+                        "name": "Tarefa teste  ",
+                        "due_date": datetime.datetime(2019, 6, 30, 23, 59, 59),
+                        "groups": [],
+                    }
+                },
+            )
 
     @patch("susyapi._get_html")
     def test_get_users(self, mocked_get):
@@ -119,6 +161,12 @@ class TestArguments(unittest.TestCase):
         mock_url = "https://susy.ic.unicamp.br:9999/mc999/01/relatoA.html"
 
         mocked_get.return_value = load_example_html(HTML_PAGES["MAINTENANCE"])
+        self.assertEqual(susyapi.get_users(mock_url), [])
+
+        mocked_get.return_value = load_example_html(HTML_PAGES["GROUP1"])
+        self.assertEqual(susyapi.get_users(mock_url), ["visita"])
+
+        mocked_get.return_value = load_example_html(HTML_PAGES["GROUP2"])
         self.assertEqual(susyapi.get_users(mock_url), [])
 
         mocked_get.return_value = load_example_html(HTML_PAGES["EMPTY_GROUP"])
