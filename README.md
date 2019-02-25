@@ -41,7 +41,7 @@ Args:
     url (str or list): The URL (or list of URLs) of a SuSy's assignment's group page.
 
 Returns:
-    completed_users (list): A dictionary where the key is the section code and the value is the section URL.
+    completed_users (list): A list of the id of the users that completed the assignment.
 
 ```
 
