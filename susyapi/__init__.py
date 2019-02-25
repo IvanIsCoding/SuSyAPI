@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import urllib.parse
 
 SUSY_PATH = "https://susy.ic.unicamp.br:9999"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def _format_user_id(user_id):
